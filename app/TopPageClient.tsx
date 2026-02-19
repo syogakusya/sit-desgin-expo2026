@@ -292,7 +292,7 @@ export default function TopPageClient({
       {/* モバイルの下余白を少し広げ、次セクションとの間隔を確保します。 */}
       <section
         data-reveal
-        className="relative mt-0 overflow-hidden px-4 pb-20 pt-12 md:mt-0 md:px-8 lg:px-[128px] md:py-[96px]"
+        className="relative mt-0 overflow-hidden px-4 pb-20 pt-12 md:mt-0 md:px-8 lg:px-[128px] md:py-[198px]"
       >
         <div
           aria-hidden="true"
@@ -305,9 +305,9 @@ export default function TopPageClient({
             className="absolute h-full w-full object-cover"
           />
         </div>
-        <div className="relative flex flex-col items-center gap-4 md:gap-6">
+        <div className="relative flex flex-col items-center text-center md:gap-6">
           <div className="flex w-full flex-col items-center py-1 md:py-2">
-            <p className="text-[16px] font-extrabold leading-[1.5] text-[#EBEEF0] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[20px]">
+            <p className="text-[16px] font-normal leading-[1.5] text-[#EBEEF0] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[20px]">
               CONCEPT
             </p>
             <p className="text-[48px] font-extrabold leading-[1.5] tracking-[0.96px] text-[#F9F9F9] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[56px] md:tracking-[1.12px]">
@@ -317,52 +317,46 @@ export default function TopPageClient({
 
           {/* デスクトップ本文 */}
           <div className="hidden w-full px-[128px] text-center md:block">
-            <div className="text-[18px] leading-[2.2] tracking-[0.72px] text-[#F9F9F9] [font-family:'Noto_Sans_JP',sans-serif]">
+            <div className="text-[24px] leading-[2.2] tracking-[0.72px] text-[#F9F9F9] [font-family:'Noto_Sans_JP',sans-serif]">
               <p className="mb-0">
-                卒展は、来場者と研究の接点となるだけでなく、
-              </p>
-              <p className="mb-0 text-[18px]">&nbsp;</p>
-              <p className="mb-0">研究と社会の仕組み、</p>
-              <p className="mb-0">研究と過去の経験、</p>
-              <p className="mb-0">研究と新たに生まれる可能性、</p>
-              <p className="mb-0 text-[18px]">&nbsp;</p>
-              <p className="mb-0">
-                など接点を持ちうる様々な要素に囲まれている。
+                学びを深め、社会と向き合い
               </p>
               <p className="mb-0">
-                客観的に見た卒展は、そういった外部の接点を多様に持ち、
-                様々な接点の上で成り立っている。
+                自分なりの<span className="text-[32px] font-bold [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">“カタチ”</span>を積み重ねてきた僕ら。
               </p>
-              <p className="mb-0 text-[18px]">&nbsp;</p>
-              <p>
-                そんな卒展を覗くと、たくさんのアイデアにあふれていて、
-                来場者も自分なりに研究との接点を見つけられる空間が広がっている。
+              <p className="mb-0">&nbsp;</p>
+              <p className="mb-0">
+              あらゆるものが交わるこの場所で、
+              </p>
+              <p className="mb-0">
+                あなたはどんな<span className="text-[32px] font-bold [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">“カタチ”</span>を見つけられるだろうか。
+              </p>
+              <p className="mb-0">&nbsp;</p>
+              <p className="mb-0 text-[32px] font-semibold [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+                あなたにとっての「接点」が、きっとここにある。
               </p>
             </div>
           </div>
 
           {/* モバイル本文 */}
-          <div className="w-full text-center md:hidden">
-            <div className="text-[15px] leading-[2.2] tracking-[0.6px] text-[#F9F9F9] [font-family:'Noto_Sans_JP',sans-serif]">
+          <div className="w-full px-6 mt-4 text-center md:hidden">
+            <div className="text-[16px] leading-[2.2] tracking-[0.6px] text-[#F9F9F9] [font-family:'Noto_Sans_JP',sans-serif]">
               <p className="mb-0">
-                卒展は、来場者と研究の接点となるだけでなく、
-              </p>
-              <p className="mb-0 text-[15px]">&nbsp;</p>
-              <p className="mb-0">研究と社会の仕組み、</p>
-              <p className="mb-0">研究と過去の経験、</p>
-              <p className="mb-0">研究と新たに生まれる可能性、</p>
-              <p className="mb-0 text-[15px]">&nbsp;</p>
-              <p className="mb-0">
-                など接点を持ちうる様々な要素に囲まれている。
+                学びを深め、社会と向き合い
               </p>
               <p className="mb-0">
-                客観的に見た卒展は、そういった外部の接点を多様に持ち、
-                様々な接点の上で成り立っている。
+                自分なりの<span className="text-[24px] font-bold [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">"カタチ"</span>を<br />積み重ねてきた僕ら。
               </p>
-              <p className="mb-0 text-[15px]">&nbsp;</p>
-              <p>
-                そんな卒展を覗くと、たくさんのアイデアにあふれていて、
-                来場者も自分なりに研究との接点を見つけられる空間が広がっている。
+              <p className="mb-0">&nbsp;</p>
+              <p className="mb-0">
+                あらゆるものが交わるこの場所で、
+              </p>
+              <p className="mb-0">
+                あなたはどんな<span className="text-[24px] font-bold [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">"カタチ"</span>を<br />見つけられるだろうか。
+              </p>
+              <p className="mb-0">&nbsp;</p>
+              <p className="mb-0 text-[24px] font-semibold [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+                あなたにとっての「接点」が、<br />きっとここにある。
               </p>
             </div>
           </div>
