@@ -32,6 +32,7 @@ type PreviewItem = {
 
 // SIT MAPの画像は公開フォルダ内の最新版を参照します。
 const sitMapImageUrl = "/image/sit_map.png";
+const infomationDecorationRightUrl = "/image/top-decoration5.svg";
 // 「卒業・修了研究展とは」セクションの装飾は、公開フォルダのSVGに集約して読み込みます。
 // 以前のFigmaアセット分割をやめて1枚絵にまとめることで、配置調整と管理コストを下げます。
 const exhibitionDecorationLeftUrl = "/image/top-decoration1.svg";
@@ -155,6 +156,13 @@ export default function TopPageClient({
           data-reveal
           className="px-4 pb-6 pt-6 md:px-8 lg:px-[128px] md:pb-[128px] md:pt-[128px]"
         >
+          <div className="pointer-events-none -z-5 absolute top-0 -right-[100px] hidden h-[677px] w-[527px] overflow-hidden md:block">
+            <img
+              alt=""
+              src={infomationDecorationRightUrl}
+              className="block h-full w-full"
+            />
+          </div>
           <div className="mx-auto rounded-[24px] bg-[#F9F9F9] p-6 shadow-[0_0_8px_rgba(106,115,120,0.15)] md:max-w-[1024px] md:p-9">
             {/* モバイル・デスクトップともに見出しを中央寄せにして視線が散らないようにします。 */}
             <div className="border-b border-[#FB9678] pb-1 text-center">
