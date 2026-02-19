@@ -681,10 +681,10 @@ export default function TopPageClient({
         </div>
       </section>
 
-      {/* 開催場所はFigmaのレイアウトに合わせ、モバイルは地図を表示しません。 */}
+      {/* 開催場所はFigmaのレイアウトに合わせ*/}
       <section
         data-reveal
-        className="bg-[#EBEEF0] px-4 py-12 md:px-8 lg:px-[128px] md:py-[96px]"
+        className="bg-[#F9F9F9] px-4 py-12 md:px-8 lg:px-[128px] md:py-[96px]"
       >
         <div className="mx-auto flex flex-col gap-4 md:max-w-[1024px]">
           {/* 見出しは白背景+下線の構成に揃え、サイズはFigmaの20pxで固定します。 */}
@@ -697,7 +697,7 @@ export default function TopPageClient({
 
           {/* 開催まとめはモバイルで縦並び、デスクトップで2カラムにします。 */}
           <div className="flex flex-col gap-3 md:flex-row md:gap-6">
-            <div className="rounded-lg bg-[#F9F9F9] p-3 text-left md:flex-1 md:items-center md:text-center">
+            <div className="rounded-lg bg-[#FEFEFE] border-[#EBEEF0] p-3 text-left md:flex-1 md:items-center md:text-center">
               <p className="text-[16px] font-medium leading-[1.5] text-[#D3793D] md:text-center">
                 平日
               </p>
@@ -709,7 +709,7 @@ export default function TopPageClient({
                 から。
               </p>
             </div>
-            <div className="rounded-lg bg-[#F9F9F9] p-3 text-left md:flex-1 md:items-center md:text-center">
+            <div className="rounded-lg bg-[#FEFEFE] border-[#EBEEF0] p-3 text-left md:flex-1 md:items-center md:text-center">
               <p className="text-[16px] font-medium leading-[1.5] text-[#D3793D] md:text-center">
                 土日
               </p>
@@ -723,8 +723,46 @@ export default function TopPageClient({
             </div>
           </div>
 
+          {/* ガイド動画導線は2段目で中央配置に整えます。 */}
+          <div className="my-18">
+            <div className="mx-auto max-w-[768px]">
+              <div className="flex items-center gap-3">
+                <span className="h-px flex-1 bg-[#DDE1E4]" />
+                <p className="text-[12px] font-medium tracking-[0.15em] text-[#D3793D] [font-family:var(--font-roboto)] md:text-[16px] md:tracking-[0.2em]">
+                  GUIDE VIDEOS
+                </p>
+                <span className="h-px flex-1 bg-[#DDE1E4]" />
+              </div>
+              <p className="mt-2 text-center text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459] md:text-[18px]">
+                大学への行き方動画はこちらから
+                <br />
+                (Youtubeに遷移します。)
+              </p>
+              <div className="mt-4 flex items-center gap-4 md:justify-center md:gap-[64px]">
+                <button
+                  type="button"
+                  onClick={handleGuideVideoClick}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:max-w-[352px] md:px-[56px] md:py-[24px] md:text-[15px]"
+                >
+                  豊洲駅から
+                  {/* Figma指定のリンクアイコンをボタン内に配置します。 */}
+                  <img src="/icon/link.svg" alt="" className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleGuideVideoClick}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:max-w-[352px] md:px-[56px] md:py-[24px] md:text-[15px]"
+                >
+                  越中島駅から
+                  {/* Figma指定のリンクアイコンをボタン内に配置します。 */}
+                  <img src="/icon/link.svg" alt="" className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+
           {/* SIT MAPはデスクトップのみ表示し、カード内の罫線は均等に配置します。 */}
-          <div className="hidden rounded-2xl bg-[#F9F9F9] px-4 py-6 md:block">
+          <div className="rounded-2xl px-4 py-6 md:block">
             <div className="flex items-center gap-3">
               <span className="h-px flex-1 bg-[#DDE1E4]" />
               <p className="text-[16px] font-medium tracking-[0.15em] text-[#D3793D] [font-family:var(--font-roboto)]">
@@ -733,7 +771,7 @@ export default function TopPageClient({
               <span className="h-px flex-1 bg-[#DDE1E4]" />
             </div>
             <p className="mt-2 text-center text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
-              開催場所の大学内の位置はこのようになっています。
+              開催場所の交流プラザの位置はこちらです。
             </p>
             <div className="mt-4 overflow-hidden rounded-2xl">
               <img
@@ -787,43 +825,6 @@ export default function TopPageClient({
                 className="h-[209px] w-full md:h-[278px]"
                 title="芝浦工業大学 豊洲キャンパスの地図"
               />
-            </div>
-          </div>
-          {/* ガイド動画導線は2段目で中央配置に整えます。 */}
-          <div className="mt-6 md:mt-8">
-            <div className="mx-auto max-w-[768px]">
-              <div className="flex items-center gap-3">
-                <span className="h-px flex-1 bg-[#DDE1E4]" />
-                <p className="text-[12px] font-medium tracking-[0.15em] text-[#D3793D] [font-family:var(--font-roboto)] md:text-[16px] md:tracking-[0.2em]">
-                  GUIDE VIDEOS
-                </p>
-                <span className="h-px flex-1 bg-[#DDE1E4]" />
-              </div>
-              <p className="mt-2 text-center text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459] md:text-[18px]">
-                大学への行き方動画はこちらから
-                <br />
-                (Youtubeに遷移します。)
-              </p>
-              <div className="mt-4 flex items-center gap-4 md:justify-center md:gap-[64px]">
-                <button
-                  type="button"
-                  onClick={handleGuideVideoClick}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:max-w-[352px] md:px-[56px] md:py-[24px] md:text-[15px]"
-                >
-                  豊洲駅から
-                  {/* Figma指定のリンクアイコンをボタン内に配置します。 */}
-                  <img src="/icon/link.svg" alt="" className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={handleGuideVideoClick}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:max-w-[352px] md:px-[56px] md:py-[24px] md:text-[15px]"
-                >
-                  越中島駅から
-                  {/* Figma指定のリンクアイコンをボタン内に配置します。 */}
-                  <img src="/icon/link.svg" alt="" className="h-4 w-4" />
-                </button>
-              </div>
             </div>
           </div>
         </div>
