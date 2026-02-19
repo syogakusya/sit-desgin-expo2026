@@ -654,7 +654,7 @@ export default function TopPageClient({
                   href="/career"
                   className="flex items-center gap-2 rounded-full bg-[#D3793D] px-8 py-4 text-[13px] font-medium text-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
                 >
-                  進路をもっと詳しく
+                  学生の進路を見る
                   <span aria-hidden="true">→</span>
                 </Link>
               </div>
@@ -674,7 +674,7 @@ export default function TopPageClient({
               href="/career"
               className="flex items-center gap-2 rounded-full bg-[#D3793D] px-8 py-4 text-[13px] font-medium text-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
             >
-              進路をもっと詳しく
+              学生の進路を見る
               <span aria-hidden="true">→</span>
             </Link>
           </div>
