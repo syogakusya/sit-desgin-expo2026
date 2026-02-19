@@ -447,7 +447,7 @@ export default function CareerClient() {
       >
         <div className="border-b border-[#FB9678] pb-1">
           <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px]">
-            就職先の決めて
+            就職先の決め手
           </h2>
         </div>
         <div className="mt-4 space-y-4 md:mt-6">
