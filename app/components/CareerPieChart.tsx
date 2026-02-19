@@ -81,7 +81,7 @@ export default function CareerPieChart({
       </div>
       {/* nは円グラフの右下に配置します。 */}
       <p className="mt-2 w-full text-right text-[12px] text-[#4B5459] md:absolute md:bottom-0 md:right-0 md:mt-0 md:text-[20px]">
-        n={total}
+        合計{total}名
       </p>
     </div>
   )
