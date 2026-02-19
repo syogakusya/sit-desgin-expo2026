@@ -144,139 +144,141 @@ export default function TopPageClient({
   return (
     // 画面が短いときでもフッターが下端に揃うよう、最小高さを確保します。
     // モバイルは横幅いっぱいに広げるため、最大幅の制限はmd以上に限定します。
-    <div className="mx-auto flex min-h-screen w-full flex-col bg-[#F9F9F9] md:max-w-[1280px]">
+    <div className="mx-auto flex min-h-screen w-full flex-col bg-[#F9F9F9]">
       {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
       {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
       <GlobalHeader activeId="top" hidden={!kvComplete} />
 
-      {/* 開催情報カードはFigmaの角丸・影・配色をそのまま移植します。 */}
-      <section
-        data-reveal
-        className="px-4 pb-6 pt-6 md:px-8 lg:px-[128px] md:pb-[96px] md:pt-[96px]"
-      >
-        <div className="mx-auto rounded-[24px] bg-[#F9F9F9] p-6 shadow-[0_0_8px_rgba(106,115,120,0.15)] md:max-w-[1024px] md:p-9">
-          {/* モバイル・デスクトップともに見出しを中央寄せにして視線が散らないようにします。 */}
-          <div className="border-b border-[#FB9678] pb-1 text-center">
-            <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px] md:tracking-[0.04em]">
-              開催情報
-            </p>
-          </div>
-          <div className="mt-4 flex flex-col items-center gap-4 text-center md:mt-8 md:gap-6">
-            <div className="flex flex-col items-center gap-4">
-              <p className="text-[24px] font-extrabold text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[32px]">
-                3.07
-                <span className="text-[16px] text-[#2C68D3]">(土)</span>
-                <span className="mx-1 text-[24px] text-[#A3ADB2]">-</span>
-                3.17
-                <span className="text-[16px] text-[#6A7378]">(火)</span>
-              </p>
-              <p className="text-[13px] font-medium text-[#6A7378] md:text-[15px]">
-                芝浦工業大学 豊洲キャンパス 交流プラザ
+      <div className="mx-auto w-full bg-linear-to-b from-[#F9F9F9] to-[#EBEEF0]"  id="top-page-content">
+        {/* 開催情報カードはFigmaの角丸・影・配色をそのまま移植します。 */}
+        <section
+          data-reveal
+          className="px-4 pb-6 pt-6 md:px-8 lg:px-[128px] md:pb-[128px] md:pt-[128px]"
+        >
+          <div className="mx-auto rounded-[24px] bg-[#F9F9F9] p-6 shadow-[0_0_8px_rgba(106,115,120,0.15)] md:max-w-[1024px] md:p-9">
+            {/* モバイル・デスクトップともに見出しを中央寄せにして視線が散らないようにします。 */}
+            <div className="border-b border-[#FB9678] pb-1 text-center">
+              <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px] md:tracking-[0.04em]">
+                開催情報
               </p>
             </div>
-            <div className="flex items-center gap-4 text-center">
-              <div className="w-[124px]">
-                <p className="text-[10px] text-[#9BA3A7] md:text-[12px]">
-                  開催時間
+            <div className="mt-4 flex flex-col items-center gap-4 text-center md:mt-8 md:gap-6">
+              <div className="flex flex-col items-center gap-4">
+                <p className="text-[24px] font-extrabold text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[32px]">
+                  3.07
+                  <span className="text-[16px] text-[#2C68D3]">(土)</span>
+                  <span className="mx-1 text-[24px] text-[#A3ADB2]">-</span>
+                  3.17
+                  <span className="text-[16px] text-[#6A7378]">(火)</span>
                 </p>
-                <p className="text-[16px] font-extrabold text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[20px]">
-                  10:00 - 17:00
+                <p className="text-[13px] font-medium text-[#6A7378] md:text-[15px]">
+                  芝浦工業大学 豊洲キャンパス 交流プラザ
                 </p>
               </div>
-              <div className="h-[31.5px] w-px bg-[#DDE1E4]" />
-              <div className="w-[124px]">
-                <p className="text-[10px] text-[#9BA3A7] md:text-[12px]">
-                  入場料
+              <div className="flex items-center gap-4 text-center">
+                <div className="w-[124px]">
+                  <p className="text-[10px] text-[#9BA3A7] md:text-[12px]">
+                    開催時間
+                  </p>
+                  <p className="text-[16px] font-extrabold text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[20px]">
+                    10:00 - 17:00
+                  </p>
+                </div>
+                <div className="h-[31.5px] w-px bg-[#DDE1E4]" />
+                <div className="w-[124px]">
+                  <p className="text-[10px] text-[#9BA3A7] md:text-[12px]">
+                    入場料
+                  </p>
+                  <p className="text-[16px] font-extrabold text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[20px]">
+                    無料
+                  </p>
+                </div>
+              </div>
+              <div className="w-full rounded-full bg-gradient-to-r from-[#FB9678] to-[#E5A967] px-8 py-2 text-center text-[#F9F9F9] md:w-[280px] md:px-[56px] md:py-[12px]">
+                <span className="text-[13px] md:text-[15px]">開催まであと </span>
+                <span className="text-[24px] font-extrabold [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+                  {daysUntilEvent}
+                </span>
+                <span className="text-[13px] font-bold md:text-[15px]">日</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 卒業・修了研究展セクションはFigmaの装飾と本文の改行を忠実に再現します。 */}
+        {/* モバイルで各セクションの下余白を広げて読みやすさを確保します（下方向のみ増やす）。 */}
+        <section
+          data-reveal
+          className="relative overflow-hidden px-4 pb-20 pt-12 md:px-8 lg:px-[128px] md:py-[128px]"
+        >
+          {/* 左上装飾は一枚SVGに置き換え、Figmaの配置と見た目を固定化します。 */}
+          <div className="pointer-events-none absolute left-0 top-0 hidden h-[389px] w-[550px] overflow-hidden md:block">
+            <img
+              alt=""
+              src={exhibitionDecorationLeftUrl}
+              className="block h-full w-full"
+            />
+          </div>
+
+          {/* 右側装飾も一枚SVGに置き換え、本文領域と干渉しない位置に固定します。 */}
+          <div className="pointer-events-none absolute right-0 top-[169px] hidden h-[471px] w-[450px] overflow-hidden md:block">
+            <img
+              alt=""
+              src={exhibitionDecorationRightUrl}
+              className="block h-full w-full"
+            />
+          </div>
+
+          {/* モバイルは右上装飾のみ表示し、視線の主導権を本文に戻します。 */}
+          <div className="pointer-events-none absolute left-[-57px] top-[79.33px] h-[471px] w-[450px] overflow-hidden md:hidden">
+            <img
+              alt=""
+              src={exhibitionDecorationRightUrl}
+              className="block h-full w-full"
+            />
+          </div>
+
+          <div className="relative mx-auto md:max-w-[1024px]">
+            <div className="flex items-center justify-center px-4 py-1 md:px-4">
+              <p className="text-[32px] font-extrabold leading-[1.5] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+                卒業・修了研究展とは
+              </p>
+            </div>
+
+            {/* デスクトップ本文は改行位置と文言をFigmaに合わせています。 */}
+            <div className="hidden px-4 pt-4 md:flex md:justify-center">
+              <div className="max-w-[768px] text-center text-[18px] leading-[2.2] tracking-[0.6px] text-[#4B5459] [font-family:'Noto_Sans_JP',sans-serif]">
+                <p className="mb-0">芝浦工業大学デザイン工学部の学生による、</p>
+                <p className="mb-0">それぞれの研究を展示する場です。</p>
+                <p className="mb-0 text-[15px]">&nbsp;</p>
+                <p className="mb-0">
+                  ここには、プロダクト・システム・UXなど、デザイン工学という広い領域における多様な研究が集まります。
                 </p>
-                <p className="text-[16px] font-extrabold text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[20px]">
-                  無料
+                <p className="mb-0 text-[15px]">&nbsp;</p>
+                <p>
+                  具体的な物として展示されるものもあれば、形のないシステムやアプリの提案、あるいは思考や概念などさまざまな研究があります。学生一人ひとりが積み上げてきた探求の軌跡を、ありのままに展示する空間です。
                 </p>
               </div>
             </div>
-            <div className="w-full rounded-full bg-gradient-to-r from-[#FB9678] to-[#E5A967] px-8 py-2 text-center text-[#F9F9F9] md:w-[280px] md:px-[56px] md:py-[12px]">
-              <span className="text-[13px] md:text-[15px]">開催まであと </span>
-              <span className="text-[24px] font-extrabold [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-                {daysUntilEvent}
-              </span>
-              <span className="text-[13px] font-bold md:text-[15px]">日</span>
+
+            {/* モバイル本文はFigmaの改行と文言をそのまま反映します。 */}
+            <div className="px-4 pt-4 md:hidden">
+              <div className="text-[15px] leading-[2.2] tracking-[0.6px] text-[#4B5459] [font-family:'Noto_Sans_JP',sans-serif]">
+                <p className="mb-0">芝浦工業大学デザイン工学部の学生による、</p>
+                <p className="mb-0">それぞれの研究を展示する場です。</p>
+                <p className="mb-0 text-[15px]">&nbsp;</p>
+                <p className="mb-0">
+                  ここには、プロダクト・システム・UXなど、デザイン工学という広い領域における多様な研究が集まります。
+                </p>
+                <p className="mb-0 text-[15px]">&nbsp;</p>
+                <p>
+                  具体的な物として展示されるものもあれば、形のないシステムやアプリの提案、あるいは思考や概念などさまざまな研究があります。学生一人ひとりが積み上げてきた探求の軌跡を、ありのままに展示する空間です。
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* 卒業・修了研究展セクションはFigmaの装飾と本文の改行を忠実に再現します。 */}
-      {/* モバイルで各セクションの下余白を広げて読みやすさを確保します（下方向のみ増やす）。 */}
-      <section
-        data-reveal
-        className="relative overflow-hidden bg-linear-to-b from-[#F9F9F9] to-[#EBEEF0] px-4 pb-20 pt-12 md:px-8 lg:px-[128px] md:py-[96px]"
-      >
-        {/* 左上装飾は一枚SVGに置き換え、Figmaの配置と見た目を固定化します。 */}
-        <div className="pointer-events-none absolute left-0 top-0 hidden h-[389px] w-[550px] overflow-hidden md:block">
-          <img
-            alt=""
-            src={exhibitionDecorationLeftUrl}
-            className="block h-full w-full"
-          />
-        </div>
-
-        {/* 右側装飾も一枚SVGに置き換え、本文領域と干渉しない位置に固定します。 */}
-        <div className="pointer-events-none absolute right-0 top-[169px] hidden h-[471px] w-[450px] overflow-hidden md:block">
-          <img
-            alt=""
-            src={exhibitionDecorationRightUrl}
-            className="block h-full w-full"
-          />
-        </div>
-
-        {/* モバイルは右上装飾のみ表示し、視線の主導権を本文に戻します。 */}
-        <div className="pointer-events-none absolute left-[-57px] top-[79.33px] h-[471px] w-[450px] overflow-hidden md:hidden">
-          <img
-            alt=""
-            src={exhibitionDecorationRightUrl}
-            className="block h-full w-full"
-          />
-        </div>
-
-        <div className="relative mx-auto md:max-w-[1024px]">
-          <div className="flex items-center justify-center px-4 py-1 md:px-4">
-            <p className="text-[24px] font-extrabold leading-[1.5] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-              卒業・修了研究展とは
-            </p>
-          </div>
-
-          {/* デスクトップ本文は改行位置と文言をFigmaに合わせています。 */}
-          <div className="hidden px-4 pt-4 md:flex md:justify-center">
-            <div className="max-w-[768px] text-center text-[15px] leading-[2.2] tracking-[0.6px] text-[#4B5459] [font-family:'Noto_Sans_JP',sans-serif]">
-              <p className="mb-0">芝浦工業大学デザイン工学部の学生による、</p>
-              <p className="mb-0">それぞれの研究を展示する場です。</p>
-              <p className="mb-0 text-[15px]">&nbsp;</p>
-              <p className="mb-0">
-                ここには、プロダクト・システム・UXなど、デザイン工学という広い領域における多様な研究が集まります。
-              </p>
-              <p className="mb-0 text-[15px]">&nbsp;</p>
-              <p>
-                具体的な物として展示されるものもあれば、形のないシステムやアプリの提案、あるいは思考や概念などさまざまな研究があります。学生一人ひとりが積み上げてきた探求の軌跡を、ありのままに展示する空間です。
-              </p>
-            </div>
-          </div>
-
-          {/* モバイル本文はFigmaの改行と文言をそのまま反映します。 */}
-          <div className="px-4 pt-4 md:hidden">
-            <div className="text-[15px] leading-[2.2] tracking-[0.6px] text-[#4B5459] [font-family:'Noto_Sans_JP',sans-serif]">
-              <p className="mb-0">芝浦工業大学デザイン工学部の学生による、</p>
-              <p className="mb-0">それぞれの研究を展示する場です。</p>
-              <p className="mb-0 text-[15px]">&nbsp;</p>
-              <p className="mb-0">
-                ここには、プロダクト・システム・UXなど、デザイン工学という広い領域における多様な研究が集まります。
-              </p>
-              <p className="mb-0 text-[15px]">&nbsp;</p>
-              <p>
-                具体的な物として展示されるものもあれば、形のないシステムやアプリの提案、あるいは思考や概念などさまざまな研究があります。学生一人ひとりが積み上げてきた探求の軌跡を、ありのままに展示する空間です。
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
       {/* コンセプトは背景のレイヤーと改行位置をFigma通りに合わせます。 */}
       {/* モバイルの下余白を少し広げ、次セクションとの間隔を確保します。 */}

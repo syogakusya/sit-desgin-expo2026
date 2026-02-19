@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import CircularLensEffect from "./CircularLensEffect";
+
 const horizontalBase = { w: 1280, h: 720 } as const;
 const verticalBase = { w: 1080, h: 1920 } as const;
 const COLOR_FADE_DURATION_MS = 800;
@@ -10,6 +11,24 @@ const FINAL_TO_ZOOM_THRESHOLD = 0.15;
 const ZOOM_SCROLL_PAGES = 3.0;
 const KV_COMPLETED_STORAGE_KEY = "keyvisual:completed";
 
+const COLOR_THRESHOLD = 0.15;
+const TE_THRESHOLD = 0.15;
+const FINAL_THRESHOLD = 0.15;
+
+const PRE_ZOOM_MIN =
+  COLOR_THRESHOLD + TE_THRESHOLD + FINAL_THRESHOLD + FINAL_TO_ZOOM_THRESHOLD + 0.05;
+const SCROLL_PAGES = Math.max(
+  Math.ceil(ZOOM_SCROLL_PAGES / (1 - PRE_ZOOM_MIN)) + 1,
+  6,
+);
+const ZOOM_RANGE = ZOOM_SCROLL_PAGES / (SCROLL_PAGES - 1);
+const COLOR_SHOWN_MAX = 1 - TE_THRESHOLD - FINAL_THRESHOLD - FINAL_TO_ZOOM_THRESHOLD - ZOOM_RANGE;
+const TE_SHOWN_MAX = 1 - FINAL_THRESHOLD - FINAL_TO_ZOOM_THRESHOLD - ZOOM_RANGE;
+const FINAL_SHOWN_MAX = 1 - FINAL_TO_ZOOM_THRESHOLD - ZOOM_RANGE;
+
+const TE_H = { x: 550, y: 721, s: 0.25, r: 0 } as const;
+const TE_V = { x: 700, y: 1090, s: 0.75, r: 0 } as const;
+
 
 export default function KeyVisual() {
   const [scale, setScale] = useState(1);
@@ -17,29 +36,53 @@ export default function KeyVisual() {
   const [layout, setLayout] = useState<"horizontal" | "vertical">("horizontal");
   const [layoutReady, setLayoutReady] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [colorShownProgress, setColorShownProgress] = useState<number | null>(null);
-  const [colorFadeCompleted, setColorFadeCompleted] = useState(false);
-  const [teShownProgress, setTeShownProgress] = useState<number | null>(null);
-  const [teFadeCompleted, setTeFadeCompleted] = useState(false);
-  const [finalShownProgress, setFinalShownProgress] = useState<number | null>(null);
+  const [colorRevealed, setColorRevealed] = useState(false);
+  const [teRevealed, setTeRevealed] = useState(false);
+  const [finalRevealed, setFinalRevealed] = useState(false);
   const [kvEverCompleted, setKvEverCompleted] = useState(false);
   const [scrollIndicatorVisible, setScrollIndicatorVisible] = useState(true);
+
   const containerRef = useRef<HTMLDivElement>(null);
+  const sceneRef = useRef<HTMLDivElement>(null);
+  const coverBgRef = useRef<HTMLDivElement>(null);
+  const whiteFadeRef = useRef<HTMLDivElement>(null);
+  const radialFadeRef = useRef<HTMLDivElement>(null);
+  const textInfoRef = useRef<HTMLDivElement>(null);
+  const teLayerRef = useRef<HTMLImageElement>(null);
+
+  const progressRef = useRef(0);
+  const colorShownRef = useRef<number | null>(null);
+  const teShownRef = useRef<number | null>(null);
+  const finalShownRef = useRef<number | null>(null);
+  const colorFadeDoneRef = useRef(false);
+  const teFadeDoneRef = useRef(false);
+  const colorTimerRef = useRef<number | null>(null);
+  const teTimerRef = useRef<number | null>(null);
+  const colorRevRef = useRef(false);
+  const teRevRef = useRef(false);
+  const finalRevRef = useRef(false);
+
+  const kvDoneRef = useRef(false);
+  const scaleRef = useRef(1);
+  const coverScaleRef = useRef(1);
+  const layoutRef = useRef<"horizontal" | "vertical">("horizontal");
   const hasDispatchedCompleteRef = useRef(false);
   const scrollAdjustedRef = useRef(false);
   const savedContentOffsetRef = useRef(0);
   const scrollIndicatorTimerRef = useRef<number | null>(null);
-  const maxAllowedProgressRef = useRef(1);
+  const maxAllowedProgressRef = useRef(TE_SHOWN_MAX + 0.01);
   const hasInitializedLayoutRef = useRef(false);
   const initialRevealRafRef = useRef<number | null>(null);
   const hasStartedRevealRef = useRef(false);
   const restoredFromStorageRef = useRef(false);
+  const applyZoomRef = useRef<(zp: number) => void>(() => {});
+
+  kvDoneRef.current = kvEverCompleted;
 
   const startInitialReveal = useCallback((isVertical: boolean) => {
     if (hasStartedRevealRef.current) return;
     hasStartedRevealRef.current = true;
-    const preloadSources = isVertical
+    const sources = isVertical
       ? [
           "/key-visual/back-vertical.png",
           "/key-visual/vertical/hoka.svg",
@@ -52,17 +95,17 @@ export default function KeyVisual() {
           "/key-visual/horizontal/setu.svg",
           "/key-visual/horizontal/ten.svg",
         ];
-    let finished = false;
+    let done = false;
     const finish = () => {
-      if (finished) return;
-      finished = true;
+      if (done) return;
+      done = true;
       initialRevealRafRef.current = requestAnimationFrame(() => {
         setIsVisible(true);
       });
     };
-    const timeoutId = window.setTimeout(finish, 1200);
+    const tid = window.setTimeout(finish, 1200);
     Promise.allSettled(
-      preloadSources.map(
+      sources.map(
         (src) =>
           new Promise<void>((resolve) => {
             const img = new Image();
@@ -72,7 +115,7 @@ export default function KeyVisual() {
           }),
       ),
     ).then(() => {
-      window.clearTimeout(timeoutId);
+      window.clearTimeout(tid);
       finish();
     });
   }, []);
@@ -82,13 +125,16 @@ export default function KeyVisual() {
     const vh = window.innerHeight;
     const isVertical = vw / vh <= 4 / 3;
     const base = isVertical ? verticalBase : horizontalBase;
+    const s = isVertical
+      ? Math.min(vw / base.w, vh / base.h)
+      : Math.max(vw / base.w, vh / base.h);
+    const cs = Math.max(vw / base.w, vh / base.h);
     setLayout(isVertical ? "vertical" : "horizontal");
-    setScale(
-      isVertical
-        ? Math.min(vw / base.w, vh / base.h)
-        : Math.max(vw / base.w, vh / base.h),
-    );
-    setCoverScale(Math.max(vw / base.w, vh / base.h));
+    setScale(s);
+    setCoverScale(cs);
+    layoutRef.current = isVertical ? "vertical" : "horizontal";
+    scaleRef.current = s;
+    coverScaleRef.current = cs;
     if (!hasInitializedLayoutRef.current) {
       hasInitializedLayoutRef.current = true;
       setLayoutReady(true);
@@ -98,11 +144,12 @@ export default function KeyVisual() {
 
   useEffect(() => {
     let restoreRaf: number | null = null;
-    const storedCompleted = window.sessionStorage.getItem(KV_COMPLETED_STORAGE_KEY) === "1";
-    if (storedCompleted) {
+    const stored = window.sessionStorage.getItem(KV_COMPLETED_STORAGE_KEY) === "1";
+    if (stored) {
       restoredFromStorageRef.current = true;
       hasStartedRevealRef.current = true;
       hasDispatchedCompleteRef.current = true;
+      kvDoneRef.current = true;
       document.body.dataset.keyvisualComplete = "1";
       restoreRaf = requestAnimationFrame(() => {
         setLayoutReady(true);
@@ -115,39 +162,164 @@ export default function KeyVisual() {
     const initialRaf = requestAnimationFrame(updateScale);
     window.addEventListener("resize", updateScale);
     return () => {
-      if (restoreRaf !== null) {
-        cancelAnimationFrame(restoreRaf);
-      }
-      if (initialRevealRafRef.current !== null) {
-        cancelAnimationFrame(initialRevealRafRef.current);
-      }
+      if (restoreRaf !== null) cancelAnimationFrame(restoreRaf);
+      if (initialRevealRafRef.current !== null) cancelAnimationFrame(initialRevealRafRef.current);
       cancelAnimationFrame(initialRaf);
       window.removeEventListener("resize", updateScale);
+      if (colorTimerRef.current !== null) window.clearTimeout(colorTimerRef.current);
+      if (teTimerRef.current !== null) window.clearTimeout(teTimerRef.current);
     };
   }, [updateScale]);
 
   useEffect(() => {
     let ticking = false;
+
+    const updateMax = () => {
+      if (!colorFadeDoneRef.current) maxAllowedProgressRef.current = TE_SHOWN_MAX + 0.01;
+      else if (!teFadeDoneRef.current) maxAllowedProgressRef.current = FINAL_SHOWN_MAX + 0.01;
+      else maxAllowedProgressRef.current = 1;
+    };
+
+    const resetAll = () => {
+      colorRevRef.current = false;
+      colorShownRef.current = null;
+      colorFadeDoneRef.current = false;
+      if (colorTimerRef.current !== null) { window.clearTimeout(colorTimerRef.current); colorTimerRef.current = null; }
+      teRevRef.current = false;
+      teShownRef.current = null;
+      teFadeDoneRef.current = false;
+      if (teTimerRef.current !== null) { window.clearTimeout(teTimerRef.current); teTimerRef.current = null; }
+      finalRevRef.current = false;
+      finalShownRef.current = null;
+      updateMax();
+      setColorRevealed(false);
+      setTeRevealed(false);
+      setFinalRevealed(false);
+    };
+
+    const applyZoom = (zp: number) => {
+      const isVert = layoutRef.current === "vertical";
+      const target = isVert ? 4.1 : 3.2;
+      const zoom = 1 + (target - 1) * zp;
+      const wo = Math.min(zp * 1.2, 1);
+      const fv = kvDoneRef.current || finalRevRef.current;
+
+      if (sceneRef.current) {
+        sceneRef.current.style.transform = `translate(-50%, -50%) scale(${scaleRef.current * zoom})`;
+      }
+      if (coverBgRef.current) {
+        coverBgRef.current.style.transform = `translate(-50%, -50%) scale(${coverScaleRef.current * zoom * 1.1})`;
+      }
+      if (whiteFadeRef.current) {
+        whiteFadeRef.current.style.opacity = String(wo);
+      }
+      if (radialFadeRef.current) {
+        radialFadeRef.current.style.opacity = String(fv ? 0.8 * (1 - wo) : 0);
+      }
+      if (textInfoRef.current) {
+        textInfoRef.current.style.opacity = String(fv ? 1 - wo : 0);
+      }
+      if (teLayerRef.current) {
+        const te = isVert ? TE_V : TE_H;
+        const follow = isVert ? 0.42 : 0.5;
+        const y = zp > 0
+          ? Math.min(Math.max(te.y * (1 - follow * zp), te.y - 100), te.y + 100)
+          : te.y;
+        teLayerRef.current.style.transform =
+          `translate(-50%, -50%) translate(${te.x}px, ${y}px) scale(${te.s}) rotate(${te.r}deg)`;
+      }
+
+      if (!hasDispatchedCompleteRef.current && finalRevRef.current && wo >= 1) {
+        hasDispatchedCompleteRef.current = true;
+        window.sessionStorage.setItem(KV_COMPLETED_STORAGE_KEY, "1");
+        document.body.dataset.keyvisualComplete = "1";
+        window.dispatchEvent(new Event("keyvisual:complete"));
+        setScrollIndicatorVisible(false);
+      }
+    };
+
+    applyZoomRef.current = applyZoom;
+
+    const computeZP = () => {
+      if (kvDoneRef.current) return 0;
+      const p = progressRef.current;
+      const fp = finalShownRef.current;
+      const ready = fp !== null && p > fp + FINAL_TO_ZOOM_THRESHOLD;
+      const start = fp !== null ? fp + FINAL_TO_ZOOM_THRESHOLD : 1;
+      return finalRevRef.current && ready
+        ? Math.min(Math.max((p - start) / ZOOM_RANGE, 0), 1)
+        : 0;
+    };
+
     const onScroll = () => {
       if (ticking) return;
       ticking = true;
       requestAnimationFrame(() => {
         const el = containerRef.current;
-        if (el) {
-          const rect = el.getBoundingClientRect();
-          const scrollable = el.offsetHeight - window.innerHeight;
-          if (scrollable > 0) {
-            const raw = Math.min(Math.max(-rect.top / scrollable, 0), 1);
-            setProgress(Math.min(raw, maxAllowedProgressRef.current));
-          }
-          if (hasDispatchedCompleteRef.current && rect.bottom <= 0) {
-            savedContentOffsetRef.current = Math.max(0, window.scrollY - el.offsetHeight);
-            setKvEverCompleted(true);
+        if (!el) { ticking = false; return; }
+        const rect = el.getBoundingClientRect();
+        const scrollable = el.offsetHeight - window.innerHeight;
+
+        if (scrollable > 0) {
+          const raw = Math.min(Math.max(-rect.top / scrollable, 0), 1);
+          progressRef.current = Math.min(raw, maxAllowedProgressRef.current);
+          const p = progressRef.current;
+
+          if (!kvDoneRef.current) {
+            const wasColor = colorRevRef.current;
+            const nowColor = p > COLOR_THRESHOLD;
+
+            if (nowColor && !wasColor) {
+              colorRevRef.current = true;
+              colorShownRef.current = Math.min(p, COLOR_SHOWN_MAX);
+              setColorRevealed(true);
+              if (colorTimerRef.current !== null) window.clearTimeout(colorTimerRef.current);
+              colorTimerRef.current = window.setTimeout(() => {
+                colorFadeDoneRef.current = true;
+                colorTimerRef.current = null;
+                updateMax();
+              }, COLOR_FADE_DURATION_MS);
+            } else if (!nowColor && wasColor) {
+              resetAll();
+            }
+
+            if (colorRevRef.current && colorFadeDoneRef.current && !teRevRef.current) {
+              const cs = colorShownRef.current;
+              if (cs !== null && p > cs + TE_THRESHOLD) {
+                teRevRef.current = true;
+                teShownRef.current = Math.min(p, TE_SHOWN_MAX);
+                setTeRevealed(true);
+                if (teTimerRef.current !== null) window.clearTimeout(teTimerRef.current);
+                teTimerRef.current = window.setTimeout(() => {
+                  teFadeDoneRef.current = true;
+                  teTimerRef.current = null;
+                  updateMax();
+                }, TE_FADE_DURATION_MS);
+              }
+            }
+
+            if (teRevRef.current && teFadeDoneRef.current && !finalRevRef.current) {
+              const ts = teShownRef.current;
+              if (ts !== null && p > ts + FINAL_THRESHOLD) {
+                finalRevRef.current = true;
+                finalShownRef.current = Math.min(p, FINAL_SHOWN_MAX);
+                setFinalRevealed(true);
+              }
+            }
+
+            applyZoom(computeZP());
           }
         }
+
+        if (hasDispatchedCompleteRef.current && rect.bottom <= 0) {
+          savedContentOffsetRef.current = Math.max(0, window.scrollY - el.offsetHeight);
+          setKvEverCompleted(true);
+        }
+
         ticking = false;
       });
     };
+
     const clampScroll = () => {
       if (hasDispatchedCompleteRef.current) return;
       const el = containerRef.current;
@@ -159,6 +331,7 @@ export default function KeyVisual() {
         window.scrollTo(0, maxScroll);
       }
     };
+
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("scroll", clampScroll);
     onScroll();
@@ -168,320 +341,19 @@ export default function KeyVisual() {
     };
   }, []);
 
-  const colorRevealThreshold = 0.15;
-  const teRevealThreshold = 0.15;
-  const finalRevealThreshold = 0.15;
-  const preZoomMinProgress =
-    colorRevealThreshold + teRevealThreshold + finalRevealThreshold + FINAL_TO_ZOOM_THRESHOLD + 0.05;
-  const scrollPages = Math.max(
-    Math.ceil(ZOOM_SCROLL_PAGES / (1 - preZoomMinProgress)) + 1,
-    6,
-  );
-  const zoomScrollRange = ZOOM_SCROLL_PAGES / (scrollPages - 1);
-  const colorShownMax = 1 - teRevealThreshold - finalRevealThreshold - FINAL_TO_ZOOM_THRESHOLD - zoomScrollRange;
-  const teShownMax = 1 - finalRevealThreshold - FINAL_TO_ZOOM_THRESHOLD - zoomScrollRange;
-  const finalShownMax = 1 - FINAL_TO_ZOOM_THRESHOLD - zoomScrollRange;
-  const colorRevealed = progress > colorRevealThreshold;
-  const teReadyByScroll =
-    colorShownProgress !== null && progress > colorShownProgress + teRevealThreshold;
-  const teRevealed = colorFadeCompleted && teReadyByScroll;
-  const finalReadyByScroll =
-    teShownProgress !== null && progress > teShownProgress + finalRevealThreshold;
-  const finalRevealed = teFadeCompleted && finalReadyByScroll;
-  const zoomReadyByScroll =
-    finalShownProgress !== null &&
-    progress > finalShownProgress + FINAL_TO_ZOOM_THRESHOLD;
-  const zoomStartProgress =
-    finalShownProgress !== null
-      ? finalShownProgress + FINAL_TO_ZOOM_THRESHOLD
-      : 1;
-  const zoomProgress =
-    finalRevealed && zoomReadyByScroll
-      ? Math.min(
-          Math.max((progress - zoomStartProgress) / zoomScrollRange, 0),
-          1,
-        )
-      : 0;
-
-  const effectiveColorRevealed = kvEverCompleted || colorRevealed;
-  const effectiveTeRevealed = kvEverCompleted || teRevealed;
-  const effectiveFinalRevealed = kvEverCompleted || finalRevealed;
-  const effectiveZoomProgress = kvEverCompleted ? 0 : zoomProgress;
-
-  useEffect(() => {
-    if (progress <= colorRevealThreshold && colorShownProgress !== null) {
-      setColorShownProgress(null);
-      return;
-    }
-    if (colorShownProgress === null && colorRevealed) {
-      setColorShownProgress(Math.min(progress, colorShownMax));
-    }
-  }, [progress, colorRevealed, colorShownProgress]);
-
-  useEffect(() => {
-    if (!colorRevealed) {
-      setColorFadeCompleted(false);
-      return;
-    }
-    const timer = window.setTimeout(() => {
-      setColorFadeCompleted(true);
-    }, COLOR_FADE_DURATION_MS);
-    return () => window.clearTimeout(timer);
-  }, [colorRevealed]);
-
-  useEffect(() => {
-    if (!teRevealed) {
-      setTeShownProgress(null);
-      setTeFadeCompleted(false);
-      return;
-    }
-    if (teShownProgress === null) {
-      setTeShownProgress(Math.min(progress, teShownMax));
-    }
-    const timer = window.setTimeout(() => {
-      setTeFadeCompleted(true);
-    }, TE_FADE_DURATION_MS);
-    return () => window.clearTimeout(timer);
-  }, [teRevealed, teShownProgress, progress]);
-
-  useEffect(() => {
-    if (!finalRevealed) {
-      setFinalShownProgress(null);
-      return;
-    }
-    if (finalShownProgress === null) {
-      setFinalShownProgress(Math.min(progress, finalShownMax));
-    }
-  }, [finalRevealed, finalShownProgress, progress]);
-
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- ref-based zoom reapply after React renders
   useLayoutEffect(() => {
-    if (!colorFadeCompleted) {
-      maxAllowedProgressRef.current = teShownMax + 0.01;
-    } else if (!teFadeCompleted) {
-      maxAllowedProgressRef.current = finalShownMax + 0.01;
-    } else {
-      maxAllowedProgressRef.current = 1;
-    }
-  }, [colorFadeCompleted, teFadeCompleted, teShownMax, finalShownMax]);
-
-  const horizontalLayers = [
-    {
-      src: "/key-visual/horizontal/hoka.svg",
-      w: 1280,
-      h: 720,
-      x: 618,
-      y: 360,
-      scale: 1,
-      rotate: 0,
-      z: -30,
-      opacity: 1,
-      animate: false,
-    },
-    {
-      src: "/key-visual/horizontal/setu.svg",
-      w: 509,
-      h: 519,
-      x: -71,
-      y: 158.971,
-      scale: 1,
-      rotate: 0,
-      z: -20,
-      opacity: 1,
-      animate: false,
-    },
-    {
-      src: "/key-visual/horizontal/setu-color.svg",
-      w: 509,
-      h: 519,
-      x: -71,
-      y: 159.071,
-      scale: 1,
-      rotate: 0,
-      z: -21,
-      opacity: effectiveColorRevealed ? 1 : 0,
-      animate: true,
-    },
-    {
-      src: "/key-visual/center-text.svg",
-      w: 179,
-      h: 179,
-      x: 89.5,
-      y: 89.5,
-      scale: 1,
-      rotate: 0,
-      z: -5,
-      opacity: 1,
-      animate: false,
-    },
-    {
-      src: "/key-visual/center-circle.svg",
-      w: 179,
-      h: 179,
-      x: 89.5,
-      y: 89.5,
-      scale: 1,
-      rotate: 0,
-      z: -5,
-      opacity: 1,
-      animate: false,
-    },
-    {
-      src: "/key-visual/horizontal/ten.svg",
-      w: 521,
-      h: 549,
-      x: 513,
-      y: 360,
-      scale: 1,
-      rotate: 0,
-      z: -9,
-      opacity: 1,
-      animate: false,
-    },
-    {
-      src: "/key-visual/horizontal/ten-color.svg",
-      w: 521,
-      h: 549,
-      x: 513,
-      y: 368,
-      scale: 1.03,
-      rotate: 0,
-      z: -10,
-      opacity: effectiveColorRevealed ? 1 : 0,
-      animate: true,
-    },
-    {
-      src: "/key-visual/te.png",
-      w: 942,
-      h: 964,
-      x: 550,
-      y: 721,
-      scale: 0.25,
-      rotate: 0,
-      z: 20,
-      opacity: effectiveTeRevealed ? 1 : 0,
-      animate: true,
-    },
-  ];
-
-  const verticalLayers = [
-    {
-      src: "/key-visual/vertical/hoka.svg",
-      w: 1080,
-      h: 1920,
-      x: 540,
-      y: 960,
-      scale: 1,
-      rotate: 0,
-      z: -30,
-      opacity: 1,
-      animate: false,
-    },
-    {
-      src: "/key-visual/vertical/setu.svg",
-      w: 649,
-      h: 648,
-      x: 203,
-      y: -119,
-      scale: 0.98,
-      rotate: 0,
-      z: -20,
-      opacity: 1,
-      animate: false,
-    },
-    {
-      src: "/key-visual/vertical/setu-color.svg",
-      w: 649,
-      h: 648,
-      x: 203,
-      y: -126,
-      scale: 1,
-      rotate: 0,
-      z: -21,
-      opacity: effectiveColorRevealed ? 1 : 0,
-      animate: true,
-    },
-    {
-      src: "/key-visual/center-text.svg",
-      w: 179,
-      h: 179,
-      x: 89.5,
-      y: 89.5,
-      scale: 1.69,
-      rotate: 0,
-      z: -5,
-      opacity: 1,
-      animate: false,
-    },
-    {
-      src: "/key-visual/center-circle.svg",
-      w: 179,
-      h: 179,
-      x: 89.5,
-      y: 89.5,
-      scale: 1.69,
-      rotate: 0,
-      z: -5,
-      opacity: 1,
-      animate: false,
-    },
-    {
-      src: "/key-visual/vertical/ten.svg",
-      w: 600,
-      h: 651,
-      x: 439,
-      y: 775,
-      scale: 1,
-      rotate: 0,
-      z: -9,
-      opacity: 1,
-      animate: false,
-    },
-    {
-      src: "/key-visual/vertical/ten-color.svg",
-      w: 600,
-      h: 651,
-      x: 439,
-      y: 794,
-      scale: 1,
-      rotate: 0,
-      z: -10,
-      opacity: effectiveColorRevealed ? 1 : 0,
-      animate: true,
-    },
-    {
-      src: "/key-visual/te.png",
-      w: 942,
-      h: 964,
-      x: 700,
-      y: 1090,
-      scale: 0.75,
-      rotate: 0,
-      z: 20,
-      opacity: effectiveTeRevealed ? 1 : 0,
-      animate: true,
-    },
-  ];
-
-  const layers = layout === "vertical" ? verticalLayers : horizontalLayers;
-  const sceneZoomTarget = layout === "vertical" ? 4.1 : 3.2;
-  const sceneZoom = 1 + (sceneZoomTarget - 1) * effectiveZoomProgress;
-  const whiteFadeOpacity = Math.min(effectiveZoomProgress * 1.2, 1);
-  const base = layout === "vertical" ? verticalBase : horizontalBase;
-  const backgroundSrc =
-    layout === "vertical"
-      ? "/key-visual/back-vertical.png"
-      : "/key-visual/back-horizontal.png";
-
-  useEffect(() => {
-    if (hasDispatchedCompleteRef.current) return;
-    if (!finalRevealed || whiteFadeOpacity < 1) return;
-    hasDispatchedCompleteRef.current = true;
-    window.sessionStorage.setItem(KV_COMPLETED_STORAGE_KEY, "1");
-    document.body.dataset.keyvisualComplete = "1";
-    window.dispatchEvent(new Event("keyvisual:complete"));
-  }, [finalRevealed, whiteFadeOpacity]);
-
-  const kvComplete = kvEverCompleted || (finalRevealed && whiteFadeOpacity >= 1);
+    const p = progressRef.current;
+    const fp = finalShownRef.current;
+    const ready = fp !== null && p > fp + FINAL_TO_ZOOM_THRESHOLD;
+    const start = fp !== null ? fp + FINAL_TO_ZOOM_THRESHOLD : 1;
+    const zp = kvDoneRef.current
+      ? 0
+      : finalRevRef.current && ready
+        ? Math.min(Math.max((p - start) / ZOOM_RANGE, 0), 1)
+        : 0;
+    applyZoomRef.current(zp);
+  });
 
   useEffect(() => {
     const onScroll = () => {
@@ -505,10 +377,8 @@ export default function KeyVisual() {
   }, []);
 
   useEffect(() => {
-    if (kvComplete) {
-      setScrollIndicatorVisible(false);
-    }
-  }, [kvComplete]);
+    if (kvEverCompleted) setScrollIndicatorVisible(false);
+  }, [kvEverCompleted]);
 
   useLayoutEffect(() => {
     if (!kvEverCompleted) return;
@@ -521,8 +391,110 @@ export default function KeyVisual() {
     window.scrollTo(0, kvBottom + savedContentOffsetRef.current);
   }, [kvEverCompleted]);
 
+  const effectiveColorRevealed = kvEverCompleted || colorRevealed;
+  const effectiveTeRevealed = kvEverCompleted || teRevealed;
+
+  const horizontalLayers = [
+    {
+      src: "/key-visual/horizontal/hoka.svg",
+      w: 1280, h: 720, x: 618, y: 360,
+      scale: 1, rotate: 0, z: -30, opacity: 1, animate: false,
+    },
+    {
+      src: "/key-visual/horizontal/setu.svg",
+      w: 509, h: 519, x: -71, y: 158.971,
+      scale: 1, rotate: 0, z: -20, opacity: 1, animate: false,
+    },
+    {
+      src: "/key-visual/horizontal/setu-color.svg",
+      w: 509, h: 519, x: -71, y: 159.071,
+      scale: 1, rotate: 0, z: -21,
+      opacity: effectiveColorRevealed ? 1 : 0, animate: true,
+    },
+    {
+      src: "/key-visual/center-text.svg",
+      w: 179, h: 179, x: 89.5, y: 89.5,
+      scale: 1, rotate: 0, z: -5, opacity: 1, animate: false,
+    },
+    {
+      src: "/key-visual/center-circle.svg",
+      w: 179, h: 179, x: 89.5, y: 89.5,
+      scale: 1, rotate: 0, z: -5, opacity: 1, animate: false,
+    },
+    {
+      src: "/key-visual/horizontal/ten.svg",
+      w: 521, h: 549, x: 513, y: 360,
+      scale: 1, rotate: 0, z: -9, opacity: 1, animate: false,
+    },
+    {
+      src: "/key-visual/horizontal/ten-color.svg",
+      w: 521, h: 549, x: 513, y: 368,
+      scale: 1.03, rotate: 0, z: -10,
+      opacity: effectiveColorRevealed ? 1 : 0, animate: true,
+    },
+    {
+      src: "/key-visual/te.png",
+      w: 942, h: 964, x: 550, y: 721,
+      scale: 0.25, rotate: 0, z: 20,
+      opacity: effectiveTeRevealed ? 1 : 0, animate: true,
+    },
+  ];
+
+  const verticalLayers = [
+    {
+      src: "/key-visual/vertical/hoka.svg",
+      w: 1080, h: 1920, x: 540, y: 960,
+      scale: 1, rotate: 0, z: -30, opacity: 1, animate: false,
+    },
+    {
+      src: "/key-visual/vertical/setu.svg",
+      w: 649, h: 648, x: 203, y: -119,
+      scale: 0.98, rotate: 0, z: -20, opacity: 1, animate: false,
+    },
+    {
+      src: "/key-visual/vertical/setu-color.svg",
+      w: 649, h: 648, x: 203, y: -126,
+      scale: 1, rotate: 0, z: -21,
+      opacity: effectiveColorRevealed ? 1 : 0, animate: true,
+    },
+    {
+      src: "/key-visual/center-text.svg",
+      w: 179, h: 179, x: 89.5, y: 89.5,
+      scale: 1.69, rotate: 0, z: -5, opacity: 1, animate: false,
+    },
+    {
+      src: "/key-visual/center-circle.svg",
+      w: 179, h: 179, x: 89.5, y: 89.5,
+      scale: 1.69, rotate: 0, z: -5, opacity: 1, animate: false,
+    },
+    {
+      src: "/key-visual/vertical/ten.svg",
+      w: 600, h: 651, x: 439, y: 775,
+      scale: 1, rotate: 0, z: -9, opacity: 1, animate: false,
+    },
+    {
+      src: "/key-visual/vertical/ten-color.svg",
+      w: 600, h: 651, x: 439, y: 794,
+      scale: 1, rotate: 0, z: -10,
+      opacity: effectiveColorRevealed ? 1 : 0, animate: true,
+    },
+    {
+      src: "/key-visual/te.png",
+      w: 942, h: 964, x: 700, y: 1090,
+      scale: 0.75, rotate: 0, z: 20,
+      opacity: effectiveTeRevealed ? 1 : 0, animate: true,
+    },
+  ];
+
+  const layers = layout === "vertical" ? verticalLayers : horizontalLayers;
+  const base = layout === "vertical" ? verticalBase : horizontalBase;
+  const backgroundSrc =
+    layout === "vertical"
+      ? "/key-visual/back-vertical.png"
+      : "/key-visual/back-horizontal.png";
+
   return (
-    <div ref={containerRef} style={{ height: kvEverCompleted ? "100vh" : `${scrollPages * 100}vh`, overflowAnchor: "none" as const }}>
+    <div ref={containerRef} style={{ height: kvEverCompleted ? "100vh" : `${SCROLL_PAGES * 100}vh`, overflowAnchor: "none" as const }}>
       <section className="sticky top-0 flex h-screen w-full items-center justify-center overflow-hidden">
         {layout === "vertical" && (
           <div
@@ -533,12 +505,14 @@ export default function KeyVisual() {
             style={{ zIndex: -1 }}
           >
             <div
+              ref={coverBgRef}
               className="absolute left-1/2 top-1/2 origin-center"
               style={{
-                transform: `translate(-50%, -50%) scale(${coverScale * sceneZoom * 1.1})`,
+                transform: `translate(-50%, -50%) scale(${coverScale * 1.1})`,
                 width: base.w,
                 height: base.h,
                 filter: "blur(0px)",
+                willChange: "transform",
               }}
             >
               <img
@@ -562,13 +536,15 @@ export default function KeyVisual() {
           </div>
         )}
         <div
+          ref={sceneRef}
           className={`absolute left-1/2 top-1/2 origin-center transition-opacity duration-1000 ease-in ${
             layoutReady && isVisible ? "opacity-100" : "opacity-0"
           }`}
           style={{
-            transform: `translate(-50%, -50%) scale(${scale * sceneZoom})`,
+            transform: `translate(-50%, -50%) scale(${scale})`,
             width: base.w,
             height: base.h,
+            willChange: "transform",
           }}
         >
           <img
@@ -584,10 +560,8 @@ export default function KeyVisual() {
             const isColor = l.src.includes("-color");
             const isCenterText = l.src === "/key-visual/center-text.svg";
             const isTe = l.src === "/key-visual/te.png";
-            const teFollowStrength = layout === "vertical" ? 0.42 : 0.5;
-            const layerY = isTe ? Math.min(Math.max(l.y * (1 - teFollowStrength * effectiveZoomProgress), l.y - 100), l.y + 100) : l.y;
             const common = {
-              transform: `translate(-50%, -50%) translate(${l.x}px, ${layerY}px) scale(${l.scale}) rotate(${l.rotate}deg)`,
+              transform: `translate(-50%, -50%) translate(${l.x}px, ${l.y}px) scale(${l.scale}) rotate(${l.rotate}deg)`,
               zIndex: l.z,
               opacity: l.opacity,
               transition: l.animate ? "opacity 0.8s ease-in" : undefined,
@@ -632,6 +606,7 @@ export default function KeyVisual() {
                     width: l.w,
                     height: l.h,
                     isolation: "isolate",
+                    willChange: "opacity",
                   }}
                 >
                   <img
@@ -672,6 +647,7 @@ export default function KeyVisual() {
             return (
               <img
                 key={l.src}
+                ref={isTe ? teLayerRef : undefined}
                 src={l.src}
                 alt=""
                 aria-hidden="true"
@@ -682,38 +658,47 @@ export default function KeyVisual() {
                 fetchPriority="high"
                 draggable={false}
                 className="absolute left-1/2 top-1/2 block -translate-x-1/2 -translate-y-1/2 select-none"
-                style={common}
+                style={{
+                  ...common,
+                  willChange: isTe ? ("transform, opacity" as const) : undefined,
+                }}
               />
             );
           })}
         </div>
         <div
+          ref={radialFadeRef}
           aria-hidden="true"
           className="pointer-events-none absolute inset-0"
           style={{
             zIndex: 40,
-            opacity: effectiveFinalRevealed ? 0.8 * (1 - whiteFadeOpacity) : 0,
+            opacity: 0,
             transition: "opacity 0.8s ease-in",
+            willChange: "opacity",
             background:
               "radial-gradient(circle at center, rgba(255, 255, 255, 0.00) 0%, rgba(255, 255, 255, 0.80) 100%)",
           }}
         />
         <div
+          ref={whiteFadeRef}
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 bg-white"
           style={{
             zIndex: 41,
-            opacity: whiteFadeOpacity,
+            opacity: 0,
             transition: "opacity 0.2s linear",
+            willChange: "opacity",
           }}
         />
         <div
+          ref={textInfoRef}
           aria-hidden="true"
           className="pointer-events-none absolute bottom-[48px] left-[40px] inline-flex flex-col items-start gap-2"
           style={{
             zIndex: 42,
-            opacity: effectiveFinalRevealed ? 1 - whiteFadeOpacity : 0,
+            opacity: 0,
             transition: "opacity 0.8s ease-in",
+            willChange: "opacity",
             color: "#3C3C3C",
             textShadow: "0 2px 20px rgba(0,0,0,0.25)",
           }}
@@ -730,7 +715,7 @@ export default function KeyVisual() {
         </div>
 
         <div
-          className={`pointer-events-none absolute bottom-8 right-8 flex flex-col items-center text-neutral-700 transition-opacity ease-in [font-family:var(--font-roboto),'Hiragino_Kaku_Gothic_ProN',sans-serif] ${isVisible && scrollIndicatorVisible && !kvComplete ? "opacity-100 duration-1000" : "opacity-0 duration-500"}`}
+          className={`pointer-events-none absolute bottom-8 right-8 flex flex-col items-center text-neutral-700 transition-opacity ease-in [font-family:var(--font-roboto),'Hiragino_Kaku_Gothic_ProN',sans-serif] ${isVisible && scrollIndicatorVisible && !kvEverCompleted ? "opacity-100 duration-1000" : "opacity-0 duration-500"}`}
           style={{ zIndex: 10 }}
         >
           <p
