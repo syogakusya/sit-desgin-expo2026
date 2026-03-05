@@ -28,21 +28,13 @@ const roboto = Roboto({
 })
 
 // Shippori Mincho B1 OTF はローカルフォントとして読み込みます。
+// 変更理由: Data Transfer 抑制のため、実表示で使われる太さ（400/700/800）に限定し、
+// 未使用に近い中間ウェイト(500/600)の配信を止めます。
 const shipporiMinchoB1 = localFont({
   src: [
     {
       path: "../public/fonts/ShipporiMinchoB1-OTF-Regular.otf",
       weight: "400",
-      style: "normal",
-    },
-    {
-      path: "../public/fonts/ShipporiMinchoB1-OTF-Medium.otf",
-      weight: "500",
-      style: "normal",
-    },
-    {
-      path: "../public/fonts/ShipporiMinchoB1-OTF-SemiBold.otf",
-      weight: "600",
       style: "normal",
     },
     {

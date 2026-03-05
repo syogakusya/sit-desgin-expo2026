@@ -234,6 +234,10 @@ export default function CircularLensEffect({
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
     const image = new Image()
+    // 変更理由: 静的アセットをR2ドメインへリダイレクトした場合、画像はクロスオリジン取得になります。
+    // Canvas/WebGL へ転写するには CORS モードで読み込む必要があるため、src 設定前に anonymous を指定します。
+    // （R2 側で Access-Control-Allow-Origin が許可されている前提）
+    image.crossOrigin = "anonymous"
     image.decoding = "async"
     image.src = textureSrc
 
@@ -261,12 +265,28 @@ export default function CircularLensEffect({
         sourceCanvas.width = targetWidth
         sourceCanvas.height = targetHeight
       }
-      sourceCtx.clearRect(0, 0, targetWidth, targetHeight)
-      sourceCtx.drawImage(image, 0, 0, targetWidth, targetHeight)
-      gl.bindTexture(gl.TEXTURE_2D, texture)
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, sourceCanvas)
-      uploadedWidth = targetWidth
-      uploadedHeight = targetHeight
+      try {
+        sourceCtx.clearRect(0, 0, targetWidth, targetHeight)
+        sourceCtx.drawImage(image, 0, 0, targetWidth, targetHeight)
+        gl.bindTexture(gl.TEXTURE_2D, texture)
+        gl.texImage2D(
+          gl.TEXTURE_2D,
+          0,
+          gl.RGBA,
+          gl.RGBA,
+          gl.UNSIGNED_BYTE,
+          sourceCanvas
+        )
+        uploadedWidth = targetWidth
+        uploadedHeight = targetHeight
+      } catch (error) {
+        // 変更理由: CORS未許可時に `tainted canvas` 例外で描画ループが壊れるのを防ぐため、
+        // 失敗時はこのフレームのアップロードを中断し、コンソールへ原因を明示します。
+        console.error(
+          "CircularLensEffect: failed to upload texture. Check R2 CORS and image cross-origin settings.",
+          error
+        )
+      }
     }
 
     const render = () => {

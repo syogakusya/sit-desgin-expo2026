@@ -1,7 +1,6 @@
 "use client"
 
 import { useMemo, useState, useEffect } from "react"
-import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 
 import Footer from "../../components/Footer"
@@ -214,8 +213,9 @@ const resolveLabLogoPath = (lab?: Lab) => {
 export default function WorksDetailClient({ id }: WorksDetailClientProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { portfolioId, index } = useMemo(() => parseWorkId(id), [id])
   const [labs, setLabs] = useState<Lab[]>([])
-  const [portfolios, setPortfolios] = useState<Portfolio[]>([])
+  const [portfolio, setPortfolio] = useState<Portfolio | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [studentCareers, setStudentCareers] = useState<Career[]>([])
@@ -232,24 +232,26 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
         setLoading(true)
         setError(null)
 
-        const [labsRes, portfoliosRes] = await Promise.all([
+        const [labsRes, portfolioRes] = await Promise.all([
           fetch("/api/labs"),
-          fetch("/api/portfolios?include=student"),
+          // 変更理由: 詳細ページで全作品JSONを毎回取得すると転送量が大きいため、
+          // 作品ID単位のAPIへ切り替えて必要最小限のデータだけ取得します。
+          fetch(`/api/portfolios/${encodeURIComponent(portfolioId)}`),
         ])
 
-        if (!labsRes.ok || !portfoliosRes.ok) {
+        if (!labsRes.ok || !portfolioRes.ok) {
           throw new Error("Failed to fetch detail data.")
         }
 
-        const [labsData, portfoliosData] = await Promise.all([
+        const [labsData, portfolioData] = await Promise.all([
           labsRes.json(),
-          portfoliosRes.json(),
+          portfolioRes.json(),
         ])
 
         if (!active) return
 
         setLabs(labsData)
-        setPortfolios(portfoliosData)
+        setPortfolio(portfolioData)
       } catch (fetchError) {
         if (!active) return
         const message =
@@ -257,6 +259,9 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
             ? fetchError.message
             : "Failed to fetch detail data."
         setError(message)
+        // 変更理由: 取得失敗時に前回表示の作品情報が残ると誤表示になるため、
+        // エラー時は詳細データを明示的に空に戻します。
+        setPortfolio(null)
       } finally {
         if (active) setLoading(false)
       }
@@ -267,22 +272,11 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
     return () => {
       active = false
     }
-  }, [])
+  }, [portfolioId])
 
   const labById = useMemo(() => {
     return new Map(labs.map((lab) => [lab.id, lab]))
   }, [labs])
-
-  const { portfolioId, index } = useMemo(() => parseWorkId(id), [id])
-
-  const portfolio = useMemo(() => {
-    // CSV由来のIDに空白が混入している場合でも一致するように正規化する
-    const normalizedId = portfolioId.trim()
-    return (
-      portfolios.find((item) => (item.id ?? "").trim() === normalizedId) ??
-      null
-    )
-  }, [portfolios, portfolioId])
 
   // 作品詳細のボタン色は所属コースの色に合わせます。
   const studentLab = useMemo(

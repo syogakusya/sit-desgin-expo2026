@@ -65,20 +65,21 @@ export default function CareerPieChart({
         />
 
         {/* 変更理由: ユーザー要望に合わせ、扇形内ラベルはカテゴリ名のみを表示します。 */}
-        <p className="absolute left-[72.5%] top-[31%] -translate-x-1/2 -translate-y-1/2 text-center font-bold leading-[1.5] text-[#F9F9F9] [font-family:var(--font-shippori-mincho-b1),'ShipporiMincho-OTF-Bold','Hiragino_Mincho_ProN',serif]">
+        <p className="absolute left-[72.5%] top-[31%] -translate-x-1/2 -translate-y-1/2 text-center font-bold leading-[1.5] text-[#F9F9F9] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
           {/* 変更理由: 文言を必ず2行で固定表示するため、改行位置を固定し各行を折り返し禁止にします。 */}
           <span className="whitespace-nowrap text-[24px] md:text-[32px]">本学大学院</span>
           <br />
           <span className="whitespace-nowrap text-[24px] md:text-[32px]">へ進学</span>
         </p>
-        <p className="absolute left-[37%] top-[65%] -translate-x-1/2 -translate-y-1/2 text-center font-bold leading-[1.5] text-[#F9F9F9] [font-family:var(--font-shippori-mincho-b1),'ShipporiMincho-OTF-Bold','Hiragino_Mincho_ProN',serif]">
+        <p className="absolute left-[37%] top-[65%] -translate-x-1/2 -translate-y-1/2 text-center font-bold leading-[1.5] text-[#F9F9F9] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
           <span className="text-[24px] md:text-[32px]">就職</span>
         </p>
         {/* 「その他」は比率が小さいためラベルを省略します。 */}
       </div>
 
       {/* 変更理由: Figmaに合わせて集計表記を「合計◯◯名」に統一し、右下位置を固定します。 */}
-      <p className="absolute bottom-0 right-0 text-right text-[12px] leading-[1.5] font-semibold text-[#737373] [font-family:var(--font-shippori-mincho-b1),'ShipporiMincho-OTF-Bold','Hiragino_Mincho_ProN',serif] md:text-[16px]">
+      {/* 変更理由: 削除済みローカルフォント名へのフォールバック参照を外し、実際の配信フォント構成とCSS定義を一致させます。 */}
+      <p className="absolute bottom-0 right-0 text-right text-[12px] leading-[1.5] font-semibold text-[#737373] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[16px]">
         合計{total}名
       </p>
     </div>

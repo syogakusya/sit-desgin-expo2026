@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "bash scripts/vercel-build.sh",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "upload:static-assets": "node scripts/upload-static-assets.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.981.0",

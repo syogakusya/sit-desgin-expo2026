@@ -158,6 +158,16 @@ DATABASE_DIRECT_URL="postgres://sit:sitpass@localhost:5432/sit_design_expo?schem
 - `R2_ENDPOINT`  
   R2 の S3 互換エンドポイント。
 
+### 静的アセット配信先（Vercel Data Transfer 削減用）
+
+- `R2_BUCKET_ENDPOINT`（推奨・統一）  
+  例: `https://pub-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.r2.dev`  
+  設定すると、`/key-visual/*`, `/image/*`, `/icon/*`, `/texture/*`, `/fonts/*` へのアクセスを  
+  Next.js 側で外部URLへリダイレクトします（`next.config.ts` の `redirects`）。
+- `NEXT_PUBLIC_ASSET_BASE_URL`（任意・上書き用）  
+  例: `https://assets.example.com`  
+  特定環境だけ配信先を切り替えたい場合の上書き値です。
+
 マイグレーション実行:
 
 これは開発環境用
@@ -219,6 +229,34 @@ node scripts/upload-portfolio-images.mjs
 - `.env` に R2 の以下の環境変数が設定されていること  
   `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_BUCKET_ENDPOINT`, `R2_ENDPOINT`
 
+### 静的アセット一括アップロード（public -> R2）
+
+`public` 配下の重い静的アセットをR2へ一括同期します。  
+`R2_BUCKET_ENDPOINT` を使った外部配信切り替えと組み合わせる前提のスクリプトです。
+
+```bash
+npm run upload:static-assets
+```
+
+主な仕様:
+- デフォルト対象: `public/key-visual`, `public/image`, `public/icon`, `public/texture`, `public/fonts`
+- 再帰的に全ファイルをアップロード
+- `Content-Type` / `Cache-Control` を拡張子とパスで自動設定
+  - `fonts/*`: `public, max-age=31536000, immutable`
+  - それ以外: `public, max-age=604800, stale-while-revalidate=2592000`
+
+ドライラン（アップロードせず対象確認）:
+
+```bash
+node scripts/upload-static-assets.js --dry-run
+```
+
+対象ディレクトリを限定して実行:
+
+```bash
+node scripts/upload-static-assets.js --dirs=image,fonts
+```
+
 ### Google フォームの選択肢自動更新 (Apps Script)
 
 `scripts/update-form-choices.gs` に Google Apps Script の例を置いています。  
@@ -258,6 +296,45 @@ Next.js の詳細は以下を参照してください:
 4. デプロイ後、必要に応じて `npm run lint` と動作確認を行う
 
 補足:
+
+## Vercel Data Transfer削減（R2直配信）
+
+静的ファイルをR2 + Cloudflare CDNから直接配信し、Vercelの転送量を減らす運用手順です。  
+このリポジトリは `R2_BUCKET_ENDPOINT` を使って切り替えられるようになっています（必要時のみ `NEXT_PUBLIC_ASSET_BASE_URL` で上書き）。
+
+1. Cloudflare 側で公開ドメインを準備
+- 例: `assets.example.com`
+- R2 バケットを Custom Domain に接続し、HTTPSで配信できる状態にする
+
+2. 重い静的アセットをR2へ配置
+- 対象ディレクトリ:
+  - `public/key-visual`
+  - `public/image`
+  - `public/icon`
+  - `public/texture`
+  - `public/fonts`
+- R2上のパスも同じ構造（例: `image/...`, `fonts/...`）に合わせる
+
+3. CDNキャッシュを設定
+- 推奨: `Cache-Control: public, max-age=31536000, immutable`（ファイル名更新前提）
+- 差し替え頻度がある場合は `stale-while-revalidate` を併用
+
+4. Vercelに環境変数を設定して再デプロイ
+
+```dotenv
+R2_BUCKET_ENDPOINT="https://pub-e93022767b5743ecb05530a1b422e5db.r2.dev"
+```
+
+5. 動作確認
+- ブラウザ DevTools の Network で `/image/...` などが `308` リダイレクト後に
+  `https://assets.example.com/...` から取得されることを確認
+- Vercel Analytics の Data Transfer が低下することを確認
+
+注意:
+- `rewrites` ではなく `redirects` を使うのが重要です。  
+  `rewrites` はVercelが中継するため、Vercel側転送量を減らしにくくなります。
+- `next/image` をVercel最適化のまま使うとVercel経由になることがあります。  
+  R2直配信を優先する場合は、`img` または `next/image` の `unoptimized` / custom loader を使ってください。
 - `npm run build` は `scripts/vercel-build.sh` を実行する設定です。
 - `npx prisma migrate dev` は開発環境専用です。Vercel / 本番 DB では使用しないでください。
 

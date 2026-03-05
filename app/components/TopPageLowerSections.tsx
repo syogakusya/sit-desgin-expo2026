@@ -47,6 +47,20 @@ const weekendLimitedEvents: WeekendLimitedEvent[] = [
     ariaLabel: "デザイン工学部なんでも相談会-OSEKKAI-ページへ",
   },
   {
+    id: "osekkai-ii",
+    title: "【デザ工1,2年生向けイベント】デザイン工学部なんでも相談会-OSEKKAⅡ-",
+    description:
+      // 変更理由: OSEKKAⅡ詳細ページと同じ訴求文に揃え、トップカードから遷移した際の文言ギャップを防ぎます。
+      "豊洲キャンパスに通うデザイン工学部の先輩達が、皆さんのお悩みにお答えする相談会です！学部4年生以上が参加しますのでこの機会にたくさん相談してください。",
+    // 変更理由: トップページのイベントセクションにも OSEKKAII カードを追加し、
+    // Figmaノード(1228:14268 / 1947:8072)の3カード構成と遷移導線を一致させるためです。
+    imageSrc: "/image/osekkai2.webp",
+    imageAlt: "【デザ工1,2年生向けイベント】デザイン工学部なんでも相談会 OSEKKAⅡ",
+    href: "/events/osekkai-ii",
+    ariaLabel:
+      "【デザ工1,2年生向けイベント】デザイン工学部なんでも相談会-OSEKKAⅡ-ページへ",
+  },
+  {
     id: "farewell-lecture",
     title: "退職される先生の最終講義と懇親会",
     description:
@@ -89,8 +103,9 @@ export default function TopPageLowerSections({
       {/* イベント背景はFigmaの淡いグレーをベースにし、背景画像で質感を足します。 */}
       <section
         data-reveal
-        // Figmaノード(PC:1228:14268=1040px / SP:1228:14631=1098.125px)に合わせてイベントセクション高を固定します。
-        className="relative isolate h-[1098.125px] overflow-x-clip px-4 py-12 md:h-[1040px] md:px-8 lg:px-[128px] md:py-[128px]"
+        // 変更理由: OSEKKAIIカード追加でイベントカードが3枚構成になり、固定高さだと最下段カードとボタンが見切れるため、
+        // セクション高は内容量に追従する可変に変更します。Figmaの高さは最小高さとして保持し、余白設計は維持します。
+        className="relative isolate min-h-[1098.125px] overflow-x-clip px-4 py-12 md:min-h-[1040px] md:px-8 lg:px-[128px] md:py-[128px]"
       >
         {/* 土日限定イベントの背景もフルブリードにし、左右の余白で画像が途切れないようにします。 */}
         <div

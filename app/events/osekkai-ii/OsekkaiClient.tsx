@@ -9,11 +9,11 @@ import useSectionReveal from "../../components/useSectionReveal";
 const pointCards = [
   {
     title: "就活のリアルを間近で",
-    description: ["今まで作ってきたポートフォリオが見れる！"],
+    description: ["今まで作ってきたポートフォリオが見られる！"],
   },
   {
     title: "現役生とフリートーク",
-    description: ["すでに就活を終わらせた先輩や進学を決めた先輩の話を聞ける！"],
+    description: ["すでに就活を終わらせた先輩や進学を決めた先輩の話を聴ける！"],
   },
 ];
 
@@ -60,9 +60,9 @@ export default function OsekkaiClient() {
 
             <div className="space-y-0 text-[15px] leading-[2] tracking-[0.04em] text-[#4B5459] md:text-[18px]">
               <p>
-                豊洲で勉強する先輩によるデザイン工学部なんでも相談会です！学部4年生以上が参加しますのでこの機会にたくさん相談してください！
+                豊洲キャンパスに通うデザイン工学部の先輩達が、皆さんのお悩みにお答えする相談会です！学部4年生以上が参加しますのでこの機会にたくさん相談してください！
                 「研究室ってどんな雰囲気？」「豊洲はどんな感じ？」「就活は大変？」
-                そんな疑問に、現役の学生が「おせっかい」なくらい親身にお答えします！まだ通い慣れていない豊洲キャンパスに遊びにきませんか？
+                そんな疑問に、現役の学生が「おせっかい」なくらい親身にお答えします！これから通うことになる豊洲キャンパスに一足先に遊びに来ませんか？
               </p>
               <p>開催日：3/15（日）15:30~16:30</p>
               <p>開催場所：豊洲キャンパス本部棟6階オープンラボ</p>
@@ -101,7 +101,7 @@ export default function OsekkaiClient() {
           </div>
 
           <p className="my-6 text-[15px] leading-[2] tracking-[0.04em] text-[#4B5459] md:my-9 md:text-[18px]">
-            大学生活への不安や勉強のコツなど、どんなに些細なことでも構いません。卒展開催に合わせたこの機会にぜひ、リアルな声を聴きにお越しください！
+            大学生活への不安や勉強のコツなど、どんなに些細なことでも構いません。卒展に足を運ぶついでに、この機会にぜひ現役生のリアルな声を聴きに来てください！
           </p>
 
           <article className="rounded-[12px] border border-[#EBEEF0] bg-white/80 p-3 md:rounded-[20px] md:p-5">
