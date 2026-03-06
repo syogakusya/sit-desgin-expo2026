@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 
 import CareerPieChart from "./CareerPieChart";
 import Footer from "./Footer";
@@ -31,6 +30,12 @@ type WeekendLimitedEvent = {
 // 初回表示ブロックに不要な責務を持たせないため、下層コンポーネント側で定義します。
 const sitMapImageUrl = "/image/sit_map.webp";
 const eventBackgroundUrl = "/image/background/event_background.png";
+// 変更理由: 「大学への行き方動画」導線は準備中表示から実リンク公開へ切り替わったため、
+// ボタンごとに遷移先URLを定数化して参照漏れや誤差し替えを防ぎます。
+const guideVideoUrls = {
+  toyosu: "https://youtube.com/shorts/gd2FHjGx19o?feature=share",
+  ecchujima: "https://youtube.com/shorts/8jDujKkfoxA?feature=share",
+} as const;
 
 // 土日限定イベントのカード情報はイベントページと揃え、トップ側も同じ内容をカード表示します。
 const weekendLimitedEvents: WeekendLimitedEvent[] = [
@@ -76,8 +81,6 @@ const weekendLimitedEvents: WeekendLimitedEvent[] = [
 export default function TopPageLowerSections({
   careerStats,
 }: TopPageLowerSectionsProps) {
-  const [isGuideVideoModalOpen, setIsGuideVideoModalOpen] = useState(false);
-
   // 進路データはサーバー側で集計済みの値を受け取り、表示用に割合へ変換します。
   const totalCareers = careerStats.total;
   const gradPercent =
@@ -86,16 +89,6 @@ export default function TopPageLowerSections({
     totalCareers === 0 ? 0 : (careerStats.jobCount / totalCareers) * 100;
   const otherPercent =
     totalCareers === 0 ? 0 : (careerStats.otherCount / totalCareers) * 100;
-
-  // 駅導線ボタンを押したときは外部遷移せず、準備中案内をモーダルで表示します。
-  const handleGuideVideoClick = () => {
-    setIsGuideVideoModalOpen(true);
-  };
-
-  // モーダルを閉じる処理を共通化し、背景クリック・閉じるボタンの両方で再利用します。
-  const handleCloseGuideVideoModal = () => {
-    setIsGuideVideoModalOpen(false);
-  };
 
   return (
     <>
@@ -298,9 +291,10 @@ export default function TopPageLowerSections({
             {/* SP/PCともに2ボタンを横並びにし、Figmaの線ボタン見た目を維持します。 */}
             {/* 駅動画ボタンは白塗り(デフォルト)→オレンジ塗り(hover)を明確にするため、重ね白レイヤーを使わず背景色遷移のみで表現します。 */}
             <div className="mt-4 flex items-center gap-4 md:justify-center md:gap-6 md:px-12">
-              <button
-                type="button"
-                onClick={handleGuideVideoClick}
+              <Link
+                href={guideVideoUrls.toyosu}
+                target="_blank"
+                rel="noopener noreferrer"
                 // 枠線ボタンはFigma仕様に合わせ、300msのイースイン・イースアウトで塗りと文字色を反転します。
                 className="group relative flex flex-1 items-center justify-center gap-2 overflow-hidden rounded-full border border-[#FB9678] bg-[#FFFFFF] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.1)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#D3793D] hover:text-[#F9F9F9] md:max-w-[352px]"
               >
@@ -313,10 +307,11 @@ export default function TopPageLowerSections({
                   fetchPriority="low"
                   className="relative z-10 h-4 w-4 transition-[filter] duration-300 ease-in-out group-hover:brightness-0 group-hover:invert"
                 />
-              </button>
-              <button
-                type="button"
-                onClick={handleGuideVideoClick}
+              </Link>
+              <Link
+                href={guideVideoUrls.ecchujima}
+                target="_blank"
+                rel="noopener noreferrer"
                 // 枠線ボタンはFigma仕様に合わせ、300msのイースイン・イースアウトで塗りと文字色を反転します。
                 className="group relative flex flex-1 items-center justify-center gap-2 overflow-hidden rounded-full border border-[#FB9678] bg-[#FFFFFF] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.1)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#D3793D] hover:text-[#F9F9F9] md:max-w-[352px]"
               >
@@ -329,7 +324,7 @@ export default function TopPageLowerSections({
                   fetchPriority="low"
                   className="relative z-10 h-4 w-4 transition-[filter] duration-300 ease-in-out group-hover:brightness-0 group-hover:invert"
                 />
-              </button>
+              </Link>
             </div>
           </div>
 
@@ -413,52 +408,6 @@ export default function TopPageLowerSections({
         <Footer className="w-full" />
       </div>
 
-      {/* 駅ガイド動画が未完成のため、クリック時はページ遷移ではなく準備中モーダルを表示します。 */}
-      {isGuideVideoModalOpen ? (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-[#2E3437]/55 px-4"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="guide-video-modal-title"
-          onClick={handleCloseGuideVideoModal}
-        >
-          <div
-            className="w-full max-w-[420px] rounded-2xl bg-[#F9F9F9] p-6 text-center shadow-[0_0_16px_rgba(46,52,55,0.2)] md:p-8"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <p
-              id="guide-video-modal-title"
-              className="text-[24px] font-extrabold tracking-[0.04em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]"
-            >
-              現在準備中
-            </p>
-            <p className="mt-3 text-[14px] leading-[1.9] text-[#4B5459] md:text-[15px]">
-              駅から大学までの行き方動画は現在準備中です。
-              <br />
-              公開まで今しばらくお待ちください。
-            </p>
-            <button
-              type="button"
-              onClick={handleCloseGuideVideoModal}
-              // 変更理由: 「閉じる」の意味をより直感的に伝えるため、右側アイコンをマイナスではなく×表示に統一します。
-              className="mt-6 mx-auto flex min-w-[140px] items-center justify-center rounded-full border border-[#A3ADB2] bg-[#F9F9F9] px-8 py-3 text-[14px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.1)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#4B5459] hover:text-[#F9F9F9] md:text-[15px]"
-            >
-              <span className="inline-flex items-center justify-center gap-2">
-                閉じる
-                <svg
-                  aria-hidden="true"
-                  className="h-4 w-4"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
-                  <path d="M7 7L17 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                  <path d="M17 7L7 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-              </span>
-            </button>
-          </div>
-        </div>
-      ) : null}
     </>
   );
 }
